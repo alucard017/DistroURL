@@ -1,15 +1,28 @@
 import mongoose from "mongoose";
 import serverConfig from "./server-config";
+import Core from "../common/index";
+const { Logger, ApiError } = Core;
+
+const { MONGO_URI } = serverConfig;
 
 const connectDB = async () => {
   return mongoose
-    .connect(serverConfig.MONGO_URI as string)
+    .connect(MONGO_URI as string)
     .then(() => {
-      console.log("Connected to database.");
+      Logger.info(`✅ Connected to DistroURL Database at MongoDB `);
     })
     .catch((err) => {
-      console.log("Could not connect to database.");
-      console.log(err);
+      const dbError = new ApiError(
+        "Database connection failed",
+        500,
+        [err],
+        err.stack
+      );
+      Logger.error(dbError.message, {
+        error: err,
+        context: "MongoDB",
+      });
+      process.exit(1);
     });
 };
 

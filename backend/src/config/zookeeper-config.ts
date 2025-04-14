@@ -1,12 +1,11 @@
 import zookeeper from "node-zookeeper-client";
-// import config from "./index";
-import AppError from "../common/error/AppError";
-import Logger from "./logger-config";
+import Core from "../common/index";
+import serverConfig from "./server-config";
 
-import ServerConfig from "./server-config";
-const zkClient = zookeeper.createClient(
-  ServerConfig.ZOOKEEPER_SERVER || "localhost:2181"
-);
+const { ApiError, Logger } = Core;
+const { ZOOKEEPER_SERVER } = serverConfig;
+
+const zkClient = zookeeper.createClient(ZOOKEEPER_SERVER || "localhost:2181");
 
 interface TokenRange {
   start: number;
@@ -37,11 +36,9 @@ const setDataAsync = (path: string, data: Buffer): Promise<void> => {
   return new Promise((resolve, reject) => {
     zkClient.setData(path, data, (error) => {
       if (error) {
-        const appError = new AppError(
-          `Failed to set data on ${path}`,
-          500,
-          false
-        );
+        const appError = new ApiError(`Failed to set data on ${path}`, 500, [
+          error,
+        ]);
         Logger.error(appError.message, { error, path });
         return reject(appError);
       }
@@ -54,11 +51,9 @@ const getDataAsync = (path: string): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     zkClient.getData(path, (error, data) => {
       if (error) {
-        const appError = new AppError(
-          `Failed to get data from ${path}`,
-          500,
-          false
-        );
+        const appError = new ApiError(`Failed to get data from ${path}`, 500, [
+          error,
+        ]);
         Logger.error(appError.message, { error, path });
         return reject(appError);
       }
@@ -75,10 +70,10 @@ const createNodeAsync = (path: string, buffer: Buffer): Promise<string> => {
       zookeeper.CreateMode.PERSISTENT,
       (error, createdPath) => {
         if (error) {
-          const appError = new AppError(
+          const appError = new ApiError(
             `Failed to create node at ${path}`,
             500,
-            false
+            [error]
           );
           Logger.error(appError.message, { error, path });
           return reject(appError);
@@ -93,11 +88,9 @@ const removeNodeAsync = (path: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     zkClient.remove(path, (error) => {
       if (error) {
-        const appError = new AppError(
-          `Failed to remove node at ${path}`,
-          500,
-          false
-        );
+        const appError = new ApiError(`Failed to remove node at ${path}`, 500, [
+          error,
+        ]);
         Logger.error(appError.message, { error, path });
         return reject(appError);
       }
@@ -133,11 +126,9 @@ const createToken = async (): Promise<void> => {
 const checkIfTokenExists = async (): Promise<void> => {
   zkClient.exists("/token", async (error, stat) => {
     if (error) {
-      const appError = new AppError(
-        "Failed to check if token exists",
-        500,
-        false
-      );
+      const appError = new ApiError("Failed to check if token exists", 500, [
+        error,
+      ]);
       Logger.error(appError.message, { error, path: "/token" });
       throw appError;
     }
@@ -158,7 +149,11 @@ const removeToken = async (): Promise<void> => {
 const connectZK = async (): Promise<void> => {
   try {
     zkClient.once("connected", async () => {
-      console.log("Connected to Zookeeper server.");
+      Logger.info(
+        `✅ Connected to Zookeeper Server at ${
+          ZOOKEEPER_SERVER || "localhost"
+        }:${2181}`
+      );
       await checkIfTokenExists();
       await getTokenRange();
       console.log("Token range start:", range.start);
@@ -166,7 +161,9 @@ const connectZK = async (): Promise<void> => {
 
     zkClient.connect();
   } catch (error) {
-    const appError = new AppError("Failed to connect to Zookeeper", 500, false);
+    const appError = new ApiError("Failed to connect to Zookeeper", 500, [
+      error,
+    ]);
     Logger.error(appError.message, { error });
     throw appError;
   }

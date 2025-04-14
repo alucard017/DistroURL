@@ -1,111 +1,125 @@
 import { Request, Response, NextFunction } from "express";
-import ShortURL from "../models/urlModel";
+import { IURL } from "../models/url.model";
 import config from "../config/index";
-import AppError from "../common/error/AppError";
+import Core from "../common/index";
+import { asyncHandler } from "../common/asyncHandler";
+import isValidUrl from "../utils/ValidateURL";
+import URLService from "../services/URLService";
 
-// Utility function to validate URLs
-const isValidUrl = (url: string): boolean => {
-  const regex = /^(ftp|http|https):\/\/[^ "]+$/;
-  return regex.test(url);
-};
+const { ApiError, Logger, ApiResponse } = Core;
 
-const urlPost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<any> => {
-  try {
-    const { ZooKeeperConfig, RedisConfig, Logger } = config;
+const { hashGenerator, range, getTokenRange, removeToken } =
+  config.ZooKeeperConfig;
+const { connectRedis, jobQueue } = config.RedisConfig;
 
-    // Check if the URL exists in the body
-    const originalUrl = req.body.OriginalUrl;
-    if (!originalUrl || !isValidUrl(originalUrl)) {
-      return next(new AppError("Invalid URL", 400));
+class URLController {
+  urlPost = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+      try {
+        const originalUrl = req.body.OriginalUrl;
+        if (!originalUrl || !isValidUrl(originalUrl)) {
+          return next(new ApiError("Invalid URL", 400));
+        }
+
+        // Update range or fetch new range
+        if (range.curr < range.end - 1 && range.curr !== 0) {
+          range.curr++;
+        } else {
+          await getTokenRange();
+          range.curr++;
+        }
+
+        // Connect to Redis
+        const redisClient = await connectRedis();
+
+        // Check Redis cache
+        const cachedHash = await redisClient.get(originalUrl);
+        if (cachedHash) {
+          const response = new ApiResponse(
+            200,
+            { Hash: cachedHash },
+            "Hash found in Redis cache"
+          );
+          return res.status(response.statusCode).json(response);
+        }
+
+        // Check DB for existing URL
+        const existingUrl = await URLService.findURL(originalUrl);
+        if (existingUrl) {
+          await redisClient.setEx(originalUrl, 600, existingUrl.Hash);
+
+          const response = new ApiResponse(
+            200,
+            { Hash: existingUrl.Hash },
+            "URL found"
+          );
+          return res.status(response.statusCode).json(response);
+        }
+
+        // Create new short URL
+        const newUrlData: any = {
+          Hash: hashGenerator(range.curr - 1), // Generate a new hash
+          OriginalUrl: originalUrl,
+          Visits: 0,
+          CreatedAt: new Date(),
+          ExpiresAt: new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000), // 1 year expiry
+        };
+        const newUrl: IURL = await URLService.createURL(newUrlData);
+        await redisClient.setEx(originalUrl, 600, newUrl.Hash);
+
+        const response = new ApiResponse(
+          201,
+          { Hash: newUrl.Hash },
+          "Short URL created"
+        );
+        return res.status(response.statusCode).json(response);
+      } catch (error) {
+        Logger.error("Error in urlPost", { error });
+        return next(new ApiError("Failed to process the URL", 500, [error]));
+      }
     }
+  );
 
-    // Try to increment ZooKeeper's range
-    if (
-      ZooKeeperConfig.range.curr < ZooKeeperConfig.range.end - 1 &&
-      ZooKeeperConfig.range.curr !== 0
-    ) {
-      ZooKeeperConfig.range.curr++;
-    } else {
-      await ZooKeeperConfig.getTokenRange();
-      ZooKeeperConfig.range.curr++;
+  urlGet = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const identifier = req.params.identifier;
+        const url = await URLService.findURL({ Hash: identifier });
+
+        if (!url) {
+          return next(new ApiError("URL not found", 404));
+        }
+
+        // Enqueue the URL hash for processing
+        jobQueue.enqueue(url.Hash);
+        res.redirect(url.OriginalUrl); // No need to return the response
+      } catch (error) {
+        Logger.error("Error in urlGet", {
+          error,
+          hash: req.params.identifier,
+        });
+        return next(new ApiError("Failed to retrieve URL", 500, [error]));
+      }
     }
+  );
 
-    // Connect to Redis
-    const redisClient = await RedisConfig.connectRedis();
-
-    // Check if the URL is already cached
-    const cachedHash = await redisClient.get(originalUrl);
-    if (cachedHash) {
-      return res.json({ Hash: cachedHash });
+  tokenDelete = asyncHandler(
+    async (_req: Request, res: Response, next: NextFunction): Promise<any> => {
+      try {
+        await removeToken();
+        const response = new ApiResponse(
+          200,
+          { message: "Token removed" },
+          "Success"
+        );
+        return res.status(response.statusCode).json(response);
+      } catch (error) {
+        Logger.error("Error removing ZooKeeper token", { error });
+        return next(
+          new ApiError("Failed to remove ZooKeeper token", 500, [error])
+        );
+      }
     }
-
-    // Check if URL exists in the database
-    const existingUrl = await ShortURL.findOne({ OriginalUrl: originalUrl });
-    if (existingUrl) {
-      await redisClient.setEx(originalUrl, 600, existingUrl.Hash);
-      return res.json({ Hash: existingUrl.Hash });
-    }
-
-    // Create a new URL record
-    const newUrl = await ShortURL.create({
-      Hash: ZooKeeperConfig.hashGenerator(ZooKeeperConfig.range.curr - 1),
-      OriginalUrl: originalUrl,
-      Visits: 0,
-      CreatedAt: new Date(),
-      ExpiresAt: new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000),
-    });
-
-    // Cache the new URL hash in Redis
-    await redisClient.setEx(originalUrl, 600, newUrl.Hash);
-    return res.json({ Hash: newUrl.Hash });
-  } catch (error) {
-    config.Logger.error("Error in urlPost", { error });
-    return next(new AppError("Failed to process the URL", 500));
-  }
-};
-
-const urlGet = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const identifier = req.params.identifier;
-    const { Logger, RedisConfig } = config;
-    const url = await ShortURL.findOne({ Hash: identifier });
-
-    if (!url) {
-      return next(new AppError("URL not found", 404));
-    }
-
-    // Enqueue the URL hash for processing
-    RedisConfig.jobQueue.enqueue(url.Hash);
-    res.redirect(url.OriginalUrl); // No need to return the response
-  } catch (error) {
-    config.Logger.error("Error in urlGet", {
-      error,
-      hash: req.params.identifier,
-    });
-    return next(new AppError("Failed to retrieve URL", 500));
-  }
-};
-
-const tokenDelete = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    await config.ZooKeeperConfig.removeToken();
-    res.status(200).json({ message: "Token removed" }); // No need to return the response
-  } catch (error) {
-    config.Logger.error("Error removing ZooKeeper token", { error });
-    return next(new AppError("Failed to remove ZooKeeper token", 500));
-  }
-};
-
-export { urlPost, urlGet, tokenDelete };
+  );
+}
+export default new URLController();

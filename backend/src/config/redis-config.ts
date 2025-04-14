@@ -1,6 +1,10 @@
 import { createClient, RedisClientType } from "redis";
-import ShortURL from "../models/urlModel";
-import ServerConfig from "./server-config";
+import DistroURL from "../models/url.model";
+import serverConfig from "./server-config";
+import Core from "../common/index";
+
+const { REDIS_HOST, REDIS_PORT } = serverConfig;
+const { ApiError, Logger } = Core;
 
 class Queue {
   private items: string[];
@@ -17,12 +21,19 @@ class Queue {
         const hash = this.dequeue();
         if (hash) {
           try {
-            await ShortURL.findOneAndUpdate(
+            await DistroURL.findOneAndUpdate(
               { Hash: hash },
               { $inc: { Visits: 1 } }
             );
           } catch (err) {
-            console.error("Error updating Visits:", err);
+            const visitError = new ApiError("Error updating Visits", 500, [
+              err,
+            ]);
+
+            Logger.error(visitError.message, {
+              error: err,
+              context: "Redis",
+            });
           }
         }
       }
@@ -46,19 +57,53 @@ class Queue {
   }
 }
 
-const jobQueue = new Queue();
-
 const connectRedis = async (): Promise<RedisClientType> => {
-  const redisUrl = ServerConfig.REDIS_URL;
-
   const client: RedisClientType = createClient({
-    url: redisUrl,
+    socket: {
+      host: REDIS_HOST || "localhost",
+      port: Number(REDIS_PORT) || 6379,
+    },
   });
 
-  client.on("error", (err) => console.error("Redis Client Error", err));
+  client.on("error", (err) => {
+    const redisError = new ApiError(
+      "Redis Client Error",
+      500,
+      [err],
+      err.stack
+    );
 
-  await client.connect(); // Connect to Redis
-  return client;
+    Logger.error(redisError.message, {
+      error: err,
+      context: "Redis",
+    });
+  });
+  try {
+    await client.connect();
+    Logger.info(
+      `✅ Connected to Redis at ${REDIS_HOST || "localhost"}:${
+        REDIS_PORT || 6379
+      }`
+    );
+    return client;
+  } catch (err: any) {
+    const redisError = new ApiError(
+      "Failed to connect to Redis",
+      500,
+      [err],
+      err.stack
+    );
+
+    Logger.error(redisError.message, {
+      error: err,
+      context: "Redis",
+    });
+
+    throw redisError;
+    // throw new Error("connectRedis: Unexpected execution path without return");
+  }
 };
+
+const jobQueue = new Queue();
 
 export { connectRedis, jobQueue };

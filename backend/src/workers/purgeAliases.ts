@@ -1,5 +1,5 @@
 import { CronJob } from "cron"; // Use ES Modules imports
-import URL from "../models/urlModel"; // Assuming you're using ESModules, otherwise use require
+import URL from "../models/url.model"; // Assuming you're using ESModules, otherwise use require
 
 export default () => {
   // Set up a cron job to run every day at midnight (00:00)

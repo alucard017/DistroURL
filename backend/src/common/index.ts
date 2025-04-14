@@ -1,5 +1,12 @@
+import ApiError from "./ApiError";
+import ApiResponse from "./ApiResponse";
+import { asyncHandler } from "./asyncHandler";
+import Logger from "./logger";
+
 export default {
-  ErrorResponse: require("./error-response"),
-  SuccessResponse: require("./success-response"),
+  ApiError,
+  ApiResponse,
+  Logger,
+  asyncHandler,
   // CRONS: require('./cron-jobs')
 };
