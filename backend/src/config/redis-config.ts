@@ -90,12 +90,12 @@ const connectRedis = async (): Promise<RedisClientType> => {
     const redisError = new ApiError(
       "Failed to connect to Redis",
       500,
-      [err],
+      [err.message],
       err.stack
     );
 
     Logger.error(redisError.message, {
-      error: err,
+      error: err.message,
       context: "Redis",
     });
 

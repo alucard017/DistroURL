@@ -42,9 +42,8 @@ class URLController {
           );
           return res.status(response.statusCode).json(response);
         }
-
         // Check DB for existing URL
-        const existingUrl = await URLService.findURL(originalUrl);
+        const existingUrl = await URLService.findURL({ originalUrl });
         if (existingUrl) {
           await redisClient.setEx(originalUrl, 600, existingUrl.Hash);
 
@@ -73,9 +72,14 @@ class URLController {
           "Short URL created"
         );
         return res.status(response.statusCode).json(response);
-      } catch (error) {
+      } catch (error: any) {
+        console.error("Error in urlPost:", error);
         Logger.error("Error in urlPost", { error });
-        return next(new ApiError("Failed to process the URL", 500, [error]));
+        return next(
+          new ApiError("Failed to process the URL", 500, [
+            error.message || error,
+          ])
+        );
       }
     }
   );
@@ -83,20 +87,22 @@ class URLController {
   urlGet = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
-        const identifier = req.params.identifier;
+        const identifier =
+          (req.query.identifier as string) || req.params.identifier;
+        console.log("Extracted identifier:", identifier);
         const url = await URLService.findURL({ Hash: identifier });
-
+        console.log("Retrieved URL from DB:", url);
         if (!url) {
           return next(new ApiError("URL not found", 404));
         }
 
         // Enqueue the URL hash for processing
         jobQueue.enqueue(url.Hash);
-        res.redirect(url.OriginalUrl); // No need to return the response
+        res.redirect(url.OriginalUrl);
       } catch (error) {
         Logger.error("Error in urlGet", {
           error,
-          hash: req.params.identifier,
+          hash: req.query.identifier || req.params.identifier,
         });
         return next(new ApiError("Failed to retrieve URL", 500, [error]));
       }

@@ -16,10 +16,10 @@ connectZK();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.get("/", (req: Request, res: Response) => {
-  res.json({ msg: "Hello" });
-});
-// app.use("/", mainRoute);
+// app.get("/", (req: Request, res: Response) => {
+//   res.json({ msg: "Hello" });
+// });
+app.use("/", mainRoute);
 
 app.use(globalErrorHandler);
 export default app;

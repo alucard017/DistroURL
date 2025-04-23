@@ -151,8 +151,8 @@ const connectZK = async (): Promise<void> => {
     zkClient.once("connected", async () => {
       Logger.info(
         `✅ Connected to Zookeeper Server at ${
-          ZOOKEEPER_SERVER || "localhost"
-        }:${2181}`
+          ZOOKEEPER_SERVER || `localhost :${2181}`
+        }`
       );
       await checkIfTokenExists();
       await getTokenRange();
