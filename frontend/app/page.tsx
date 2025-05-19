@@ -1,22 +1,29 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { ArrowRight, ChevronDown, LinkIcon, Zap, Shield, BarChart3 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  ChevronDown,
+  LinkIcon,
+  Zap,
+  Shield,
+  BarChart3,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false)
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const container = {
     hidden: { opacity: 0 },
@@ -27,41 +34,46 @@ export default function LandingPage() {
         delayChildren: 0.3,
       },
     },
-  }
+  };
 
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  }
+  };
 
   const features = [
     {
       icon: <LinkIcon className="h-10 w-10 text-primary" />,
       title: "Instant URL Shortening",
-      description: "Transform long URLs into concise, shareable links in milliseconds.",
+      description:
+        "Transform long URLs into concise, shareable links in milliseconds.",
     },
     {
       icon: <Zap className="h-10 w-10 text-primary" />,
       title: "High-Performance Infrastructure",
-      description: "Built on Redis, Nginx, and Zookeeper for unmatched reliability and speed.",
+      description:
+        "Built on Redis, Nginx, and Zookeeper for unmatched reliability and speed.",
     },
     {
       icon: <Shield className="h-10 w-10 text-primary" />,
       title: "Secure & Reliable",
-      description: "Enterprise-grade security with 99.9% uptime guarantee for all your links.",
+      description:
+        "Enterprise-grade security with 99.9% uptime guarantee for all your links.",
     },
     {
       icon: <BarChart3 className="h-10 w-10 text-primary" />,
-      title: "Real-time Analytics",
-      description: "Monitor system performance and link activity with detailed visualizations.",
+      title: "Integrate with your Application",
+      description: "Available API to integrate with your application.",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen flex flex-col">
       <header
         className={`sticky top-0 z-50 transition-all duration-300 ${
-          scrolled ? "bg-background/80 backdrop-blur-md shadow-md" : "bg-transparent"
+          scrolled
+            ? "bg-background/80 backdrop-blur-md shadow-md"
+            : "bg-transparent"
         }`}
       >
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -74,7 +86,7 @@ export default function LandingPage() {
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
               <LinkIcon className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-xl">ShortLink</span>
+            <span className="font-bold text-xl">DistroURL</span>
           </motion.div>
 
           <motion.div
@@ -98,7 +110,11 @@ export default function LandingPage() {
 
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+              >
                 <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-violet-500">
                   Transform Your Links, Elevate Your Reach
                 </h1>
@@ -110,8 +126,8 @@ export default function LandingPage() {
                 transition={{ duration: 0.7, delay: 0.2 }}
               >
                 <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                  Our high-performance URL shortener combines speed, reliability, and real-time insights to power your
-                  links.
+                  Our high-performance URL shortener combines speed,
+                  reliability, and real-time insights to power your links.
                 </p>
               </motion.div>
 
@@ -127,7 +143,11 @@ export default function LandingPage() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8 h-12">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 h-12"
+                >
                   Learn More
                 </Button>
               </motion.div>
@@ -167,8 +187,13 @@ export default function LandingPage() {
             transition={{ duration: 1, delay: 1 }}
             className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center"
           >
-            <span className="text-sm text-muted-foreground mb-2">Scroll to explore</span>
-            <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5 }}>
+            <span className="text-sm text-muted-foreground mb-2">
+              Scroll to explore
+            </span>
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5 }}
+            >
               <ChevronDown className="h-6 w-6 text-muted-foreground" />
             </motion.div>
           </motion.div>
@@ -184,10 +209,12 @@ export default function LandingPage() {
               transition={{ duration: 0.7 }}
               className="text-center mb-16"
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Powerful Features</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Powerful Features
+              </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Our platform combines cutting-edge technology with intuitive design to deliver an exceptional URL
-                shortening experience.
+                Our platform combines cutting-edge technology with intuitive
+                design to deliver an exceptional URL shortening experience.
               </p>
             </motion.div>
 
@@ -205,7 +232,9 @@ export default function LandingPage() {
                   className="bg-background rounded-xl p-6 shadow-lg border hover:shadow-xl transition-shadow duration-300"
                 >
                   <div className="mb-4">{feature.icon}</div>
-                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {feature.title}
+                  </h3>
                   <p className="text-muted-foreground">{feature.description}</p>
                 </motion.div>
               ))}
@@ -225,9 +254,12 @@ export default function LandingPage() {
               transition={{ duration: 0.7 }}
               className="max-w-3xl mx-auto text-center"
             >
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Transform Your Links?</h2>
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">
+                Ready to Transform Your Links?
+              </h2>
               <p className="text-xl text-muted-foreground mb-8">
-                Join thousands of users who trust our platform for their URL shortening needs.
+                Join thousands of users who trust our platform for their URL
+                shortening needs.
               </p>
               <Button asChild size="lg" className="text-lg px-8 h-12">
                 <Link href="/shortener">
@@ -278,11 +310,11 @@ export default function LandingPage() {
             </div>
 
             <div className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Your Name. All rights reserved.
+              © {new Date().getFullYear()} Alucard. All rights reserved.
             </div>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
