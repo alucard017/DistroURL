@@ -52,6 +52,8 @@ When a user accesses a short URL:
 | Fast-CSV   | Bulk CSV operations          |
 | Next.js    | Frontend framework           |
 | TypeScript | Safer JavaScript             |
+| Swagger UI | API Documentation            |
+| Winston    | Logger                       |
 
 ---
 
