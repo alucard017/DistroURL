@@ -647,6 +647,7 @@ export default function ShortenerPage() {
                               setCalendarOpen(false);
                             }}
                             disabled={(date) => isBefore(date, new Date())}
+                            //@ts-ignore
                             initialFocus
                           />
                         </PopoverContent>
