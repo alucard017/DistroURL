@@ -6,6 +6,8 @@ export interface IURL extends Document {
   Visits: number;
   CreatedAt?: Date;
   ExpiresAt?: Date;
+  Password?: string;
+  OneTime?: boolean;
 }
 
 const URLSchema: Schema<IURL> = new Schema({
@@ -28,6 +30,14 @@ const URLSchema: Schema<IURL> = new Schema({
   },
   ExpiresAt: {
     type: Date,
+  },
+  Password: {
+    type: String, // store hashed password ideally
+    required: false,
+  },
+  OneTime: {
+    type: Boolean,
+    default: false,
   },
 });
 

@@ -9,4 +9,5 @@ export default {
   REDIS_HOST: process.env.REDIS_HOST,
   REDIS_PORT: process.env.REDIS_PORT,
   ZOOKEEPER_SERVER: process.env.ZK_SERVER,
+  BASE_URL: process.env.BASE_URL || `http://localhost:${process.env.PORT}`,
 };
