@@ -31,11 +31,12 @@ DistroURL follows a distributed system architecture using:
 
 ### 🔗 Flow of Short URL Redirection
 
-1. When a user accesses a short URL:
-   - Redis is checked first for cached metadata.
-   - If not found, MongoDB is queried and data is cached.
-   - Password and expiry are validated.
-   - One-time links are deleted after use.
+When a user accesses a short URL:
+
+- Redis is checked first for cached metadata.
+- If not found, MongoDB is queried and data is cached.
+- Password and expiry are validated.
+- One-time links are deleted after use.
 
 ---
 
