@@ -279,12 +279,12 @@ export default function LandingPage() {
               <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
                 <LinkIcon className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-bold text-xl">ShortLink</span>
+              <span className="font-bold text-xl">DistroURL</span>
             </div>
 
             <div className="flex items-center gap-6">
               <a
-                href="https://github.com/yourusername"
+                href="https://github.com/alucard017"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"

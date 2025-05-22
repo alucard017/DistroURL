@@ -1,89 +1,49 @@
 import { Request, Response, NextFunction } from "express";
+// import { Multer } from "multer";
 import { IURL } from "../models/url.model";
 import config from "../config/index";
 import Core from "../common/index";
 import { asyncHandler } from "../common/asyncHandler";
-import isValidUrl from "../utils/ValidateURL";
 import URLService from "../services/URLService";
 const { BASE_URL } = config.ServerConfig;
 const { ApiError, Logger, ApiResponse } = Core;
+import fs from "fs";
+import { parse, writeToPath } from "fast-csv";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+import isValidUrl from "../utils/ValidateURL";
+const { removeToken } = config.ZooKeeperConfig;
+const { jobQueue } = config.RedisConfig;
 
-const { hashGenerator, range, getTokenRange, removeToken } =
-  config.ZooKeeperConfig;
-const { connectRedis, jobQueue } = config.RedisConfig;
+// interface MulterRequest extends Request {
+//   file: Express.Multer.File;
+// }
 
 class URLController {
   urlPost = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<any> => {
       try {
-        const { OriginalUrl, Password, OneTime, ExpiresAt } = req.body;
-
-        if (!OriginalUrl || !isValidUrl(OriginalUrl)) {
-          return next(new ApiError("Invalid URL", 400));
+        const { OriginalUrl, Password, OneTime } = req.body;
+        let { ExpiresAt } = req.body;
+        if (ExpiresAt) {
+          const parsedDate = new Date(ExpiresAt);
+          if (!isNaN(parsedDate.getTime())) {
+            ExpiresAt = parsedDate;
+          } else {
+            console.warn(
+              "Invalid ExpiresAt received from frontend:",
+              ExpiresAt
+            );
+            ExpiresAt = undefined; // fallback to default inside generateShortURL
+          }
         }
-
-        let expiryDate = ExpiresAt
-          ? new Date(ExpiresAt)
-          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-        if (isNaN(expiryDate.getTime()) || expiryDate <= new Date()) {
-          expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-        }
-
-        if (range.curr < range.end - 1 && range.curr !== 0) {
-          range.curr++;
-        } else {
-          await getTokenRange();
-          range.curr++;
-        }
-
-        const redisClient = await connectRedis();
-
-        const cacheKey = `url:${OriginalUrl}:password:${
-          Password || ""
-        }:oneTime:${OneTime ? "1" : "0"}`;
-
-        const cachedHash = await redisClient.get(cacheKey);
-        if (cachedHash) {
-          const shortUrl = `${BASE_URL}/${cachedHash}`;
-          const response = new ApiResponse(
-            200,
-            { ShortURL: shortUrl },
-            "Hash found in Redis cache"
-          );
-          return res.status(response.statusCode).json(response);
-        }
-
-        const existingUrl = await URLService.findURL({
+        const hash = await URLService.generateShortURL({
           OriginalUrl,
-          Password: Password || { $in: [null, undefined, ""] },
-          OneTime: OneTime || false,
-          ExpiresAt: { $gt: new Date() },
+          Password,
+          OneTime,
+          ExpiresAt,
         });
-
-        if (existingUrl) {
-          await redisClient.setEx(cacheKey, 600, existingUrl.Hash);
-          const shortUrl = `${BASE_URL}/${existingUrl.Hash}`;
-          const response = new ApiResponse(
-            200,
-            { ShortURL: shortUrl },
-            "URL found"
-          );
-          return res.status(response.statusCode).json(response);
-        }
-
-        const newUrlData: any = {
-          Hash: hashGenerator(range.curr - 1),
-          OriginalUrl,
-          Password: Password || null,
-          OneTime: OneTime || false,
-          Visits: 0,
-          CreatedAt: new Date(),
-          ExpiresAt: expiryDate,
-        };
-
-        const newUrl: IURL = await URLService.createURL(newUrlData);
-        await redisClient.setEx(cacheKey, 600, newUrl.Hash);
-        const shortUrl = `${BASE_URL}/${newUrl.Hash}`;
+        const shortUrl = `${BASE_URL}/${hash}`;
         const response = new ApiResponse(
           201,
           { ShortURL: shortUrl },
@@ -119,15 +79,71 @@ class URLController {
 
         if (url.Password) {
           return res.send(`
-          <html>
-            <body>
-              <form method="POST" action="/api/url/short/${identifier}">
-                <label>Enter password:</label>
-                <input type="password" name="password" required />
-                <button type="submit">Submit</button>
-              </form>
-            </body>
-          </html>
+          
+      <html>
+        <head>
+          <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .form-container {
+        background: white;
+        padding: 2rem 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .form-container label {
+        display: block;
+        margin-bottom: 1rem;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+
+      .form-container input[type="password"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+      }
+
+      .form-container button {
+        background-color: #4f46e5;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .form-container button:hover {
+        background-color: #3730a3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <form method="POST" action="/api/url/short/${identifier}">
+        <label>Enter password:</label>
+        <input type="password" name="password" required />
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </body>
+</html>
+
         `);
         }
 
@@ -162,16 +178,80 @@ class URLController {
 
         if (url.Password !== providedPassword) {
           return res.status(401).send(`
-          <html>
-            <body>
-              <p style="color:red;">Invalid password, try again.</p>
-              <form method="POST" action="/short/${identifier}">
-                <label>Enter password:</label>
-                <input type="password" name="password" required />
-                <button type="submit">Submit</button>
-              </form>
-            </body>
-          </html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .form-container {
+        background: white;
+        padding: 2rem 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .error-message {
+        color: #e11d48;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+      }
+
+      .form-container label {
+        display: block;
+        margin-bottom: 1rem;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+
+      .form-container input[type="password"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+      }
+
+      .form-container button {
+        background-color: #4f46e5;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .form-container button:hover {
+        background-color: #3730a3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <p class="error-message">Invalid password, try again.</p>
+      <form method="POST" action="/api/url/short/${identifier}">
+        <label>Enter password:</label>
+        <input type="password" name="password" required />
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </body>
+</html>
+
         `);
         }
 
@@ -247,6 +327,110 @@ class URLController {
       } catch (error) {
         Logger.error("Error in urlSearch", { error });
         return next(new ApiError("Failed to search URLs", 500, [error]));
+      }
+    }
+  );
+
+  urlBulkHandler = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+      try {
+        const file = req.file;
+
+        if (!file) {
+          return next(new ApiError("No CSV file uploaded", 400));
+        }
+
+        const filePath = file.path;
+        const urlKeywords = ["url", "site", "website", "link"];
+        const rawRows: any[] = [];
+
+        // Step 1: Collect rows synchronously
+        fs.createReadStream(filePath)
+          .pipe(parse({ headers: true }))
+          .on("data", (row: any) => {
+            rawRows.push(row);
+          })
+          .on("end", async () => {
+            // Step 2: Process rows asynchronously after reading completes
+            const processedRows = [];
+
+            for (const row of rawRows) {
+              const keys = Object.keys(row);
+              const urlKey = keys.find((key) =>
+                urlKeywords.some((keyword) =>
+                  key.toLowerCase().includes(keyword)
+                )
+              );
+
+              if (urlKey && row[urlKey]) {
+                try {
+                  let originalUrl = row[urlKey].trim();
+                  if (!/^https?:\/\//i.test(originalUrl)) {
+                    originalUrl = "http://" + originalUrl;
+                  }
+
+                  // Simple URL validation
+                  try {
+                    new URL(originalUrl);
+                  } catch {
+                    throw new Error("Invalid URL format");
+                  }
+
+                  const hash = await URLService.generateShortURL({
+                    OriginalUrl: originalUrl,
+                  });
+
+                  row["Short Link"] = `${BASE_URL}/${hash}`;
+                } catch (err) {
+                  Logger.error("Error generating short URL for row", {
+                    row,
+                    error: err,
+                  });
+                  row["Short Link"] = "Error shortening";
+                }
+              } else {
+                row["Short Link"] = "Invalid or missing URL";
+              }
+
+              processedRows.push(row);
+            }
+
+            // Step 3: Write processed rows to new CSV file
+            const outputFilename = `bulk-result-${uuidv4()}.csv`;
+            const outputPath = path.join(
+              __dirname,
+              "..",
+              "..",
+              "csv",
+              outputFilename
+            );
+
+            writeToPath(outputPath, processedRows, { headers: true })
+              .on("finish", () => {
+                res.download(outputPath, () => {
+                  fs.unlinkSync(filePath); // Delete uploaded file
+                  fs.unlinkSync(outputPath); // Delete output file after sending
+                });
+              })
+              .on("error", (err: any) => {
+                Logger.error("Error writing output CSV", { error: err });
+                next(
+                  new ApiError("Failed to write output CSV", 500, [err.message])
+                );
+              });
+          })
+          .on("error", (err: any) => {
+            Logger.error("Error parsing input CSV", { error: err });
+            fs.unlinkSync(filePath);
+            next(new ApiError("Failed to parse CSV", 400, [err.message]));
+          });
+      } catch (err: any) {
+        Logger.error("Unhandled error in urlBulkHandler", { error: err });
+        next(
+          new ApiError("Unexpected error during bulk upload", 500, [
+            err.message || err,
+          ])
+        );
       }
     }
   );

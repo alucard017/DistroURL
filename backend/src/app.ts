@@ -14,10 +14,16 @@ app.use(
     credentials: true,
   })
 );
-connectDB();
-connectRedis();
-connectZK();
-
+(async () => {
+  try {
+    await connectDB();
+    await connectRedis();
+    await connectZK();
+  } catch (err) {
+    console.error("Startup connection error", err);
+    process.exit(1); // Exit if essential services fail
+  }
+})();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 

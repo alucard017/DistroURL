@@ -18,6 +18,7 @@ import {
   Eye,
   EyeOff,
   QrCode,
+  Upload,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 
 interface PreviousUrl {
   id: string;
@@ -82,6 +84,63 @@ export default function ShortenerPage() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [selectedQrUrl, setSelectedQrUrl] = useState<string | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [isProcessingCsv, setIsProcessingCsv] = useState(false);
+  const [processedCsvUrl, setProcessedCsvUrl] = useState<string | null>(null);
+  const [csvFileName, setCsvFileName] = useState<string>("");
+
+  const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === "text/csv") {
+      setCsvFile(file);
+      setCsvFileName(file.name);
+      setProcessedCsvUrl(null);
+    } else {
+      toast({
+        title: "Invalid file",
+        description: "Please upload a valid CSV file.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const processCsvFile = async () => {
+    if (!csvFile) return;
+
+    setIsProcessingCsv(true);
+
+    const formData = new FormData();
+    formData.append("file", csvFile);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/url/bulk`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Failed to process CSV file");
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      setProcessedCsvUrl(url);
+
+      toast({
+        title: "CSV processed successfully",
+        description:
+          "Your CSV file has been processed. You can now download the results.",
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to process the CSV file. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingCsv(false);
+    }
+  };
 
   // Search for previously shortened URLs as user types
   useEffect(() => {
@@ -156,7 +215,7 @@ export default function ShortenerPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           OriginalUrl: url,
-          expiresAt: expirationDate,
+          ExpiresAt: expirationDate,
           Password: isPasswordProtected ? password : undefined,
           OneTime: isOneTimeUse,
         }),
@@ -191,7 +250,7 @@ export default function ShortenerPage() {
       try {
         await navigator.share({
           title: "Check out this shortened URL",
-          text: "I shortened this URL with ShortLink",
+          text: "I shortened this URL with DistroURL",
           url: urlToShare,
         });
       } catch (error) {
@@ -207,20 +266,34 @@ export default function ShortenerPage() {
     }
   };
 
-  const downloadQrCode = (urlToEncode: string) => {
-    const link = document.createElement("a");
-    link.href = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+  const downloadQrCode = async (urlToEncode: string) => {
+    const imageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
       urlToEncode
     )}&size=300x300&color=000000&bgcolor=ffffff`;
-    link.download = "qrcode.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 
-    toast({
-      title: "QR Code downloaded",
-      description: "Your QR code has been downloaded successfully.",
-    });
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "qrcode.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "QR Code downloaded",
+        description: "Your QR code has been downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "Unable to download QR code. Try again later.",
+        variant: "destructive",
+      });
+      console.error("QR download failed", error);
+    }
   };
 
   const clearSearch = () => {
@@ -251,7 +324,7 @@ export default function ShortenerPage() {
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
               <LinkIcon className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-xl">ShortLink</span>
+            <span className="font-bold text-xl">DistroURL</span>
           </motion.div>
 
           <ThemeToggle />
@@ -692,6 +765,154 @@ export default function ShortenerPage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="mt-16"
+        >
+          <div className="flex items-center gap-4 mb-8">
+            <Separator className="flex-1" />
+            <h2 className="text-2xl font-bold text-center">
+              Bulk URL Shortening
+            </h2>
+            <Separator className="flex-1" />
+          </div>
+
+          <Card className="overflow-hidden border-2 shadow-lg">
+            <CardContent className="p-8">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium mb-3">Upload CSV File</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Upload a CSV file containing URLs to shorten them in bulk.
+                    The file can contain other columns, but must have at least
+                    one column with URLs. Empty cells in the URL column will be
+                    ignored.
+                  </p>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+                        <input
+                          type="file"
+                          id="csv-upload"
+                          accept=".csv"
+                          onChange={handleCsvUpload}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="csv-upload"
+                          className="flex flex-col items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <Upload className="h-8 w-8 text-muted-foreground" />
+                          <span className="font-medium">
+                            Click to upload CSV
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            or drag and drop
+                          </span>
+                        </label>
+                      </div>
+
+                      {csvFile && (
+                        <div className="flex items-center justify-between bg-muted p-3 rounded-md">
+                          <div className="flex items-center gap-2 truncate">
+                            <LinkIcon className="h-4 w-4 text-primary flex-shrink-0" />
+                            <span className="font-medium truncate">
+                              {csvFileName}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setCsvFile(null);
+                              setCsvFileName("");
+                              setProcessedCsvUrl(null);
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+
+                      <Button
+                        onClick={processCsvFile}
+                        disabled={!csvFile || isProcessingCsv}
+                        className="w-full"
+                      >
+                        {isProcessingCsv ? (
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{
+                              repeat: Number.POSITIVE_INFINITY,
+                              duration: 1,
+                              ease: "linear",
+                            }}
+                            className="w-5 h-5 border-2 border-t-transparent border-white rounded-full mr-2"
+                          />
+                        ) : (
+                          <LinkIcon className="h-4 w-4 mr-2" />
+                        )}
+                        {isProcessingCsv ? "Processing..." : "Process CSV File"}
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="border rounded-lg p-4 h-full">
+                        <h4 className="font-medium mb-2">How it works</h4>
+                        <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                          <li>
+                            Upload a CSV file containing URLs in one of the
+                            columns
+                          </li>
+                          <li>
+                            Our system will identify all valid URLs in the file
+                          </li>
+                          <li>Each URL will be shortened using our service</li>
+                          <li>
+                            A new column named "ShortURL" will be added to the
+                            CSV
+                          </li>
+                          <li>
+                            Download the processed file with all your shortened
+                            links
+                          </li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {processedCsvUrl && (
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-medium mb-3">
+                      Processed CSV File
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      Your CSV file has been processed. All URLs have been
+                      shortened and added to a new column.
+                    </p>
+
+                    <div className="flex justify-center">
+                      <Button asChild size="lg" className="gap-2">
+                        <a
+                          href={processedCsvUrl}
+                          download={`shortened_${csvFileName}`}
+                        >
+                          <Download className="h-5 w-5" />
+                          Download Processed CSV
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </main>
 
       {/* QR Code Dialog */}
@@ -736,7 +957,7 @@ export default function ShortenerPage() {
         <div className="container max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-center sm:text-left">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} ShortLink. All rights reserved.
+              © {new Date().getFullYear()} DistroURL. All rights reserved.
             </p>
           </div>
           <div className="flex items-center gap-6">
