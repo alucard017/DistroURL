@@ -3,7 +3,8 @@ import { globalErrorHandler } from "./middlewares/errorMiddleware";
 import mainRoute from "./routes/index";
 import cors from "cors";
 import config from "./config/index";
-
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./swagger";
 const { connectDB, RedisConfig, ZooKeeperConfig } = config;
 const { connectRedis } = RedisConfig;
 const { connectZK } = ZooKeeperConfig;
@@ -26,7 +27,7 @@ app.use(
 })();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api", mainRoute);
 
 app.use(globalErrorHandler);
