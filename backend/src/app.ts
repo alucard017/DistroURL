@@ -11,7 +11,7 @@ const { connectZK } = ZooKeeperConfig;
 const app: Application = express();
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://192.168.1.111:3001"],
+    origin: ["http://localhost:3001", "https://distros.tech"],
     credentials: true,
   })
 );

@@ -1,8 +1,8 @@
 import express from "express";
 import URLController from "../controllers/URLController";
 import multer from "multer";
-
-const upload = multer({ dest: "uploads/" });
+import path from "path";
+const upload = multer({ dest: path.join(__dirname, "..", "..", "uploads") });
 const router = express.Router();
 
 /**
