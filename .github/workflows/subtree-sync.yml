@@ -9,14 +9,14 @@ on:
       - "backend/**"
 
 jobs:
-  sync:
+  sync-frontend:
+    if: contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend') || true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Monorepo
         uses: actions/checkout@v3
 
-      - name: Sync Frontend
-        if: contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend')
+      - name: Sync Frontend Repo
         run: |
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-frontend.git frontend-temp
           rsync -av --delete frontend/ frontend-temp/
@@ -24,11 +24,17 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
-          git commit -m "Sync frontend from monorepo" || echo "No changes to commit"
+          git commit -m "Auto-sync frontend from monorepo" || echo "No changes"
           git push
 
-      - name: Sync Backend
-        if: contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend')
+  sync-backend:
+    if: contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend') || true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Monorepo
+        uses: actions/checkout@v3
+
+      - name: Sync Backend Repo
         run: |
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-backend.git backend-temp
           rsync -av --delete backend/ backend-temp/
@@ -36,5 +42,5 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
-          git commit -m "Sync backend from monorepo" || echo "No changes to commit"
+          git commit -m "Auto-sync backend from monorepo" || echo "No changes"
           git push
