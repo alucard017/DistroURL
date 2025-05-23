@@ -1,4 +1,4 @@
-name: Sync Frontend and Backend to Separate Repos
+name: Sync Frontend and Backend Repos
 
 on:
   push:
@@ -11,33 +11,30 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout monorepo
+      - name: Checkout Monorepo
         uses: actions/checkout@v3
 
-      - name: Sync Frontend Repo
-        if: ${{ contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend') }}
+      - name: Sync Frontend
+        if: contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend')
         run: |
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-frontend.git frontend-temp
-          rm -rf frontend-temp/*
-          cp -r frontend/* frontend-temp/
+          rsync -av --delete frontend/ frontend-temp/
           cd frontend-temp
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
-          git commit -m "Auto-sync from monorepo frontend" || echo "No changes to commit"
+          git commit -m "Sync frontend from monorepo" || echo "No changes to commit"
           git push
 
-      - name: Sync Backend Repo
-        if: ${{ contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend') }}
+      - name: Sync Backend
+        if: contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend')
         run: |
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-backend.git backend-temp
-          rm -rf backend-temp/*
-          cp -r backend/* backend-temp/
+          rsync -av --delete backend/ backend-temp/
           cd backend-temp
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
-          git commit -m "Auto-sync from monorepo backend" || echo "No changes to commit"
+          git commit -m "Sync backend from monorepo" || echo "No changes to commit"
           git push
