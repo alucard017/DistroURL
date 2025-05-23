@@ -20,17 +20,18 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-      - name: Add remotes
+      - name: Push frontend to DistroURL-frontend
+        if: contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend')
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          git remote | grep frontend-origin || git remote add frontend-origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-frontend.git
-          git remote | grep backend-origin || git remote add backend-origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-backend.git
+          git remote add frontend-origin https://x-access-token:${GH_PAT}@github.com/alucard017/DistroURL-frontend.git
+          git subtree push --prefix=frontend frontend-origin main
 
-      - name: Split frontend subtree and push
+      - name: Push backend to DistroURL-backend
+        if: contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend')
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          git subtree split --prefix=frontend -b temp-frontend
-          git push frontend-origin temp-frontend:main --force
-
-      - name: Split backend subtree and push
-        run: |
-          git subtree split --prefix=backend -b temp-backend
-          git push backend-origin temp-backend:main --force
+          git remote add backend-origin https://x-access-token:${GH_PAT}@github.com/alucard017/DistroURL-backend.git
+          git subtree push --prefix=backend backend-origin main
