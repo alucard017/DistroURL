@@ -4,7 +4,7 @@ import { IURL } from "../models/url.model";
 import config from "../config/index";
 import Core from "../common/index";
 import { asyncHandler } from "../common/asyncHandler";
-import URLService from "../services/UrlService";
+import URLService from "../services/URLService";
 const { BASE_URL } = config.ServerConfig;
 const { ApiError, Logger, ApiResponse } = Core;
 import fs from "fs";
