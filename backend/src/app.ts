@@ -11,7 +11,11 @@ const { connectZK } = ZooKeeperConfig;
 const app: Application = express();
 app.use(
   cors({
-    origin: ["http://localhost:3001", "https://distros.tech"],
+    origin: [
+      "https://distro-url.vercel.app/",
+      "http://localhost:3001",
+      "https://distros.tech",
+    ],
     credentials: true,
   })
 );
