@@ -13,21 +13,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout main repository
+        uses: actions/checkout@v3
 
-      - name: Setup Git
+      - name: Setup Git user
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-      - name: Push frontend changes to DistroURL-frontend
-        if: contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend')
+      - name: Split and push frontend to DistroURL-frontend
         run: |
-          git remote add frontend-origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-frontend.git || true
-          git subtree push --prefix=frontend frontend-origin main
+          git subtree split --prefix=frontend -b temp-frontend
+          git remote add frontend-origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-frontend.git
+          git push --force frontend-origin temp-frontend:main
 
-      - name: Push backend changes to DistroURL-backend
-        if: contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend')
+      - name: Split and push backend to DistroURL-backend
         run: |
-          git remote add backend-origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-backend.git || true
-          git subtree push --prefix=backend backend-origin main
+          git subtree split --prefix=backend -b temp-backend
+          git remote add backend-origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-backend.git
+          git push --force backend-origin temp-backend:main
