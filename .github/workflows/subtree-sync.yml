@@ -1,0 +1,33 @@
+name: Sync Subtrees
+
+on:
+  push:
+    paths:
+      - "frontend/**"
+      - "backend/**"
+    branches:
+      - main
+
+jobs:
+  sync-subtrees:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Push frontend changes to DistroURL-frontend
+        if: contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend')
+        run: |
+          git remote add frontend-origin https://github.com/alucard017/DistroURL-frontend.git
+          git subtree push --prefix=frontend frontend-origin main
+
+      - name: Push backend changes to DistroURL-backend
+        if: contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend')
+        run: |
+          git remote add backend-origin https://github.com/alucard017/DistroURL-backend.git
+          git subtree push --prefix=backend backend-origin main
