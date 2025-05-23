@@ -1,22 +1,22 @@
-name: Sync Frontend and Backend Repos
+name: Sync Subtrees
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "frontend/**"
       - "backend/**"
+    branches:
+      - main
 
 jobs:
-  sync-frontend:
-    if: contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend') || true
+  sync-subtrees:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Monorepo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Sync Frontend Repo
+        if: contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend')
         run: |
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-frontend.git frontend-temp
           rsync -av --delete frontend/ frontend-temp/
@@ -25,16 +25,10 @@ jobs:
           git config user.email "actions@github.com"
           git add .
           git commit -m "Auto-sync frontend from monorepo" || echo "No changes"
-          git push
-
-  sync-backend:
-    if: contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend') || true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Monorepo
-        uses: actions/checkout@v3
+          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-frontend.git
 
       - name: Sync Backend Repo
+        if: contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend')
         run: |
           git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-backend.git backend-temp
           rsync -av --delete backend/ backend-temp/
@@ -43,4 +37,4 @@ jobs:
           git config user.email "actions@github.com"
           git add .
           git commit -m "Auto-sync backend from monorepo" || echo "No changes"
-          git push
+          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-backend.git
