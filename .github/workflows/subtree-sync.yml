@@ -26,7 +26,7 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git remote add frontend-origin https://x-access-token:${GH_PAT}@github.com/alucard017/DistroURL-frontend.git
-          git subtree split --prefix=frontend -b temp-frontend
+          git subtree split -P frontend -b temp-frontend
           git push -f frontend-origin temp-frontend:main
 
       - name: Split & push backend to DistroURL-backend
@@ -35,5 +35,5 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git remote add backend-origin https://x-access-token:${GH_PAT}@github.com/alucard017/DistroURL-backend.git
-          git subtree split --prefix=backend -b temp-backend
+          git subtree split -P backend -b temp-backend
           git push -f backend-origin temp-backend:main
