@@ -1,39 +1,43 @@
-name: Sync Subtrees
+name: Sync Frontend and Backend to Separate Repos
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "frontend/**"
       - "backend/**"
-    branches:
-      - main
 
 jobs:
-  sync-subtrees:
+  sync:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout monorepo
+        uses: actions/checkout@v3
 
-      - name: Setup Git
+      - name: Sync Frontend Repo
+        if: ${{ contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend') }}
         run: |
+          git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-frontend.git frontend-temp
+          rm -rf frontend-temp/*
+          cp -r frontend/* frontend-temp/
+          cd frontend-temp
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git add .
+          git commit -m "Auto-sync from monorepo frontend" || echo "No changes to commit"
+          git push
 
-      - name: Split & push frontend to DistroURL-frontend
-        if: contains(github.event.head_commit.message, 'frontend') || contains(github.event.head_commit.message, 'Frontend')
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+      - name: Sync Backend Repo
+        if: ${{ contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend') }}
         run: |
-          git remote add frontend-origin https://x-access-token:${GH_PAT}@github.com/alucard017/DistroURL-frontend.git
-          git subtree split -P frontend -b temp-frontend
-          git push -f frontend-origin temp-frontend:main
-
-      - name: Split & push backend to DistroURL-backend
-        if: contains(github.event.head_commit.message, 'backend') || contains(github.event.head_commit.message, 'Backend')
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          git remote add backend-origin https://x-access-token:${GH_PAT}@github.com/alucard017/DistroURL-backend.git
-          git subtree split -P backend -b temp-backend
-          git push -f backend-origin temp-backend:main
+          git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/alucard017/DistroURL-backend.git backend-temp
+          rm -rf backend-temp/*
+          cp -r backend/* backend-temp/
+          cd backend-temp
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Auto-sync from monorepo backend" || echo "No changes to commit"
+          git push
