@@ -44,18 +44,27 @@ class URLService {
 
     const redisClient = await connectRedis();
 
-    const cacheKey = `url:${OriginalUrl}:password:${Password || ""}:oneTime:${
-      OneTime ? "1" : "0"
-    }`;
+    const cacheKey =
+      `url:${OriginalUrl}` +
+      (Password ? `:password:${Password}` : "") +
+      `:oneTime:${OneTime ? "1" : "0"}`;
+
     const cachedHash = await redisClient.get(cacheKey);
     if (cachedHash) return cachedHash;
 
-    const existingUrl = await this.findURL({
+    const query: any = {
       OriginalUrl,
-      Password: Password || { $in: [null, undefined, ""] },
       OneTime: OneTime || false,
       ExpiresAt: { $gt: new Date() },
-    });
+    };
+
+    if (Password !== undefined) {
+      query.Password = Password;
+    } else {
+      query.Password = { $in: [null, undefined, ""] };
+    }
+
+    const existingUrl = await this.findURL(query);
 
     if (existingUrl) {
       await redisClient.setEx(cacheKey, 600, existingUrl.Hash);

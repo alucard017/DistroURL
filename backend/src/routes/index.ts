@@ -213,7 +213,7 @@ router.post("/search", URLController.urlSearch);
 
 /**
  * @swagger
- * /{identifier}:
+ * /url/{identifier}:
  *   post:
  *     summary: Submit password for password-protected short URL
  *     tags: [URL]
@@ -243,11 +243,11 @@ router.post("/search", URLController.urlSearch);
  *       500:
  *         description: Failed to validate password
  */
-router.post("/:identifier", URLController.urlPostPassword);
+router.post("/url/:identifier", URLController.urlPostPassword);
 
 /**
  * @swagger
- * /bulk:
+ * /url/bulk:
  *   post:
  *     summary: Upload a CSV file to bulk shorten URLs
  *     tags: [URL]
@@ -269,6 +269,6 @@ router.post("/:identifier", URLController.urlPostPassword);
  *       500:
  *         description: Error processing bulk upload
  */
-router.post("/bulk", upload.single("file"), URLController.urlBulkHandler);
+router.post("/url/bulk", upload.single("file"), URLController.urlBulkHandler);
 
 export default router;

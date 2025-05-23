@@ -17,8 +17,12 @@
       "destination": "http://135.13.37.72:8080/:identifier"
     },
     {
+      "source": "/url/:identifier",
+      "destination": "http://135.13.37.72:8080/url/:identifier"
+    },
+    {
       "source": "/bulk",
-      "destination": "http://135.13.37.72:8080/bulk"
+      "destination": "http://135.13.37.72:8080/url/bulk"
     }
   ]
 }

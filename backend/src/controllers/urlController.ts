@@ -135,7 +135,7 @@ class URLController {
   </head>
   <body>
     <div class="form-container">
-      <form method="POST" action="/${identifier}">
+      <form method="POST" action="/url/${identifier}">
         <label>Enter password:</label>
         <input type="password" name="password" required />
         <button type="submit">Submit</button>
@@ -243,7 +243,7 @@ class URLController {
   <body>
     <div class="form-container">
       <p class="error-message">Invalid password, try again.</p>
-      <form method="POST" action="/${identifier}">
+      <form method="POST" action="/url/${identifier}">
         <label>Enter password:</label>
         <input type="password" name="password" required />
         <button type="submit">Submit</button>
@@ -344,7 +344,6 @@ class URLController {
         const urlKeywords = ["url", "site", "website", "link"];
         const rawRows: any[] = [];
 
-        // Step 1: Collect rows synchronously
         fs.createReadStream(filePath)
           .pipe(parse({ headers: true }))
           .on("data", (row: any) => {
