@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import API_BASE_URL from "@/lib/config";
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -56,6 +56,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+
+// Define API base URL directly in the component
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 interface PreviousUrl {
   id: string;
@@ -528,6 +531,17 @@ export default function ShortenerPage() {
                                     <QrCode className="h-3 w-3 mr-2" />
                                     View QR Code
                                   </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8"
+                                    onClick={() =>
+                                      window.open(result.shortUrl, "_blank")
+                                    }
+                                  >
+                                    <LinkIcon className="h-3 w-3 mr-2" />
+                                    Visit
+                                  </Button>
                                 </div>
                               </div>
                             </div>
@@ -691,6 +705,14 @@ export default function ShortenerPage() {
                               >
                                 <Share2 className="h-5 w-5 mr-2" />
                                 Share
+                              </Button>
+                              <Button
+                                onClick={() => window.open(shortUrl, "_blank")}
+                                variant="outline"
+                                className="transition-all duration-200 hover:scale-110"
+                              >
+                                <LinkIcon className="h-5 w-5 mr-2" />
+                                Visit
                               </Button>
                             </div>
                           </div>
