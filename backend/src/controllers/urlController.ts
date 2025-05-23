@@ -135,7 +135,7 @@ class URLController {
   </head>
   <body>
     <div class="form-container">
-      <form method="POST" action="/url/${identifier}">
+      <form method="POST" action="/api/url/${identifier}">
         <label>Enter password:</label>
         <input type="password" name="password" required />
         <button type="submit">Submit</button>
@@ -243,7 +243,7 @@ class URLController {
   <body>
     <div class="form-container">
       <p class="error-message">Invalid password, try again.</p>
-      <form method="POST" action="/url/${identifier}">
+      <form method="POST" action="/api/url/${identifier}">
         <label>Enter password:</label>
         <input type="password" name="password" required />
         <button type="submit">Submit</button>

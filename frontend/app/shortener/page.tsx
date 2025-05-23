@@ -116,7 +116,7 @@ export default function ShortenerPage() {
     formData.append("file", csvFile);
 
     try {
-      const res = await fetch(`/url/bulk`, {
+      const res = await fetch(`/api/url/bulk`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -152,7 +152,7 @@ export default function ShortenerPage() {
     const fetchSearchResults = async () => {
       if (url.length > 5) {
         try {
-          const res = await fetch(`/search`, {
+          const res = await fetch(`/api/url/search`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
@@ -212,7 +212,7 @@ export default function ShortenerPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`/url`, {
+      const res = await fetch(`/api/url`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

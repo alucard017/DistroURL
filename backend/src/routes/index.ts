@@ -78,7 +78,7 @@ router.post("/url", URLController.urlPost);
  *       200:
  *         description: Password prompt page HTML
  */
-router.get("/:identifier", URLController.urlGet);
+router.get("/url/:identifier", URLController.urlGet);
 
 /**
  * @swagger
@@ -109,7 +109,7 @@ router.get("/:identifier", URLController.urlGet);
  *       500:
  *         description: Failed to remove token
  */
-router.delete("/api/url/del", URLController.tokenDelete);
+router.delete("/url/del", URLController.tokenDelete);
 
 /**
  * @swagger
@@ -149,7 +149,7 @@ router.delete("/api/url/del", URLController.tokenDelete);
  *       500:
  *         description: Failed to delete URL
  */
-router.delete("/api/url/:identifier", URLController.urlDelete);
+router.delete("/url/:identifier", URLController.urlDelete);
 
 /**
  * @swagger
@@ -209,7 +209,7 @@ router.delete("/api/url/:identifier", URLController.urlDelete);
  *       500:
  *         description: Failed to search URLs
  */
-router.post("/search", URLController.urlSearch);
+router.post("/url/search", URLController.urlSearch);
 
 /**
  * @swagger

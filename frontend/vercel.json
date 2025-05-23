@@ -3,26 +3,6 @@
     {
       "source": "/api/url/:path*",
       "destination": "http://135.13.37.72:8080/api/url/:path*"
-    },
-    {
-      "source": "/url",
-      "destination": "http://135.13.37.72:8080/url"
-    },
-    {
-      "source": "/search",
-      "destination": "http://135.13.37.72:8080/search"
-    },
-    {
-      "source": "/:identifier",
-      "destination": "http://135.13.37.72:8080/:identifier"
-    },
-    {
-      "source": "/url/:identifier",
-      "destination": "http://135.13.37.72:8080/url/:identifier"
-    },
-    {
-      "source": "/url/bulk",
-      "destination": "http://135.13.37.72:8080/url/bulk"
     }
   ]
 }
