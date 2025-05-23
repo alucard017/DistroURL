@@ -396,14 +396,11 @@ class URLController {
             }
 
             // Step 3: Write processed rows to new CSV file
+            const csvDir = path.join(__dirname, "..", "..", "csv");
+            fs.mkdirSync(csvDir, { recursive: true }); // ✅ Ensures folder exists
+
             const outputFilename = `bulk-result-${uuidv4()}.csv`;
-            const outputPath = path.join(
-              __dirname,
-              "..",
-              "..",
-              "csv",
-              outputFilename
-            );
+            const outputPath = path.join(csvDir, outputFilename);
 
             writeToPath(outputPath, processedRows, { headers: true })
               .on("finish", () => {

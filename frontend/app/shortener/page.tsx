@@ -535,9 +535,14 @@ export default function ShortenerPage() {
                                     variant="outline"
                                     size="sm"
                                     className="h-8"
-                                    onClick={() =>
-                                      window.open(result.shortUrl, "_blank")
-                                    }
+                                    onClick={() => {
+                                      const url = result.shortUrl.startsWith(
+                                        "http"
+                                      )
+                                        ? result.shortUrl
+                                        : `https://${result.shortUrl}`;
+                                      window.open(url, "_blank");
+                                    }}
                                   >
                                     <LinkIcon className="h-3 w-3 mr-2" />
                                     Visit
@@ -707,7 +712,12 @@ export default function ShortenerPage() {
                                 Share
                               </Button>
                               <Button
-                                onClick={() => window.open(shortUrl, "_blank")}
+                                onClick={() => {
+                                  const url = shortUrl.startsWith("http")
+                                    ? shortUrl
+                                    : `https://${shortUrl}`;
+                                  window.open(url, "_blank");
+                                }}
                                 variant="outline"
                                 className="transition-all duration-200 hover:scale-110"
                               >

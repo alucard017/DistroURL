@@ -37,8 +37,14 @@ services:
       - redis
       - mongodb
       - zookeeper
-    env_file:
-      - ./backend/.env
+    environment:
+      - PORT=8080
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=info
+      - ZK_SERVER=zookeeper:2181
+      - MONGODB_URI=mongodb://mongodb:27017/DistroURL
+      - BASE_URL=distro-url.vercel.app
     restart: unless-stopped
 
 volumes:
