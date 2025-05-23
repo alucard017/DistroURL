@@ -116,7 +116,7 @@ export default function ShortenerPage() {
     formData.append("file", csvFile);
 
     try {
-      const res = await fetch(`/bulk`, {
+      const res = await fetch(`/url/bulk`, {
         method: "POST",
         credentials: "include",
         body: formData,
