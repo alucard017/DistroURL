@@ -1,5 +1,5 @@
 import express from "express";
-import URLController from "../controllers/URLController";
+import URLController from "../controllers/urlController";
 import multer from "multer";
 import path from "path";
 const upload = multer({ dest: path.join(__dirname, "..", "..", "uploads") });
@@ -82,7 +82,7 @@ router.get("/url/:identifier", URLController.urlGet);
 
 /**
  * @swagger
- * /del:
+ * /url/del:
  *   delete:
  *     summary: Delete all URLs associated with a user's token
  *     tags: [URL]
@@ -109,7 +109,7 @@ router.get("/url/:identifier", URLController.urlGet);
  *       500:
  *         description: Failed to remove token
  */
-router.delete("/del", URLController.tokenDelete);
+router.delete("/url/del", URLController.tokenDelete);
 
 /**
  * @swagger
