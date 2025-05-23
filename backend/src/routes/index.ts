@@ -55,7 +55,7 @@ router.post("/url", URLController.urlPost);
 
 /**
  * @swagger
- * /url/{identifier}:
+ * /{identifier}:
  *   get:
  *     summary: Get the original URL from a shortened identifier
  *     tags: [URL]
@@ -78,11 +78,11 @@ router.post("/url", URLController.urlPost);
  *       200:
  *         description: Password prompt page HTML
  */
-router.get("/url/:identifier", URLController.urlGet);
+router.get("/:identifier", URLController.urlGet);
 
 /**
  * @swagger
- * /url/del:
+ * /api/url/del:
  *   delete:
  *     summary: Delete all URLs associated with a user's token
  *     tags: [URL]
@@ -109,11 +109,11 @@ router.get("/url/:identifier", URLController.urlGet);
  *       500:
  *         description: Failed to remove token
  */
-router.delete("/url/del", URLController.tokenDelete);
+router.delete("/api/url/del", URLController.tokenDelete);
 
 /**
  * @swagger
- * /url/{identifier}:
+ * /api/url/{identifier}:
  *   delete:
  *     summary: Delete a specific short URL by identifier
  *     tags: [URL]
@@ -149,11 +149,11 @@ router.delete("/url/del", URLController.tokenDelete);
  *       500:
  *         description: Failed to delete URL
  */
-router.delete("/url/:identifier", URLController.urlDelete);
+router.delete("/api/url/:identifier", URLController.urlDelete);
 
 /**
  * @swagger
- * /url/search:
+ * /search:
  *   post:
  *     summary: Search URLs by keyword or metadata
  *     tags: [URL]
@@ -209,11 +209,11 @@ router.delete("/url/:identifier", URLController.urlDelete);
  *       500:
  *         description: Failed to search URLs
  */
-router.post("/url/search", URLController.urlSearch);
+router.post("/search", URLController.urlSearch);
 
 /**
  * @swagger
- * /url/short/{identifier}:
+ * /{identifier}:
  *   post:
  *     summary: Submit password for password-protected short URL
  *     tags: [URL]
@@ -243,11 +243,11 @@ router.post("/url/search", URLController.urlSearch);
  *       500:
  *         description: Failed to validate password
  */
-router.post("/url/short/:identifier", URLController.urlPostPassword);
+router.post("/:identifier", URLController.urlPostPassword);
 
 /**
  * @swagger
- * /url/bulk:
+ * /bulk:
  *   post:
  *     summary: Upload a CSV file to bulk shorten URLs
  *     tags: [URL]
@@ -269,6 +269,6 @@ router.post("/url/short/:identifier", URLController.urlPostPassword);
  *       500:
  *         description: Error processing bulk upload
  */
-router.post("/url/bulk", upload.single("file"), URLController.urlBulkHandler);
+router.post("/bulk", upload.single("file"), URLController.urlBulkHandler);
 
 export default router;

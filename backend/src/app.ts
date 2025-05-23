@@ -32,7 +32,7 @@ app.use(
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use("/api", mainRoute);
+app.use("/", mainRoute);
 
 app.use(globalErrorHandler);
 export default app;
