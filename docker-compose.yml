@@ -19,13 +19,13 @@ services:
       - zookeeper-datalog:/datalog
     restart: unless-stopped
 
-  # mongodb:
-  #   image: mongo
-  #   ports:
-  #     - "27017:27017"
-  #   volumes:
-  #     - mongodb-data:/data/db
-  #   restart: unless-stopped
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    restart: unless-stopped
 
   backend:
     build: ./backend
@@ -35,17 +35,16 @@ services:
       - redis
       - mongodb
       - zookeeper
+    # env_file:
+    #   - ./backend/.env  --> if you want to upload your .env then uncomment and add .env here and comment whole environment below.
     environment:
-      - PORT=8080
-      - REDIS_HOST=redis
-      # - REDIS_HOST=localhost
-      - REDIS_PORT=6379
-      - LOG_LEVEL=info
-      - ZK_SERVER=zookeeper:2181
-      # - ZK_SERVER=localhost:2181
-      - MONGODB_URI=mongodb+srv://apurba007:Apurba%40123@learningcluster1.yhtlu.mongodb.net/DistroURL
-      - BASE_URL=distro-url.vercel.app/url
-      # - BASE_URL=localhost:8080/url
+      - PORT="port your want to run"
+      - REDIS_HOST="your redis host"
+      - REDIS_PORT="your redis port"
+      - LOG_LEVEL="info"
+      - ZK_SERVER="your zookeeper server URL"
+      - MONGODB_URI="your mongodb URL"
+      - BASE_URL="your base URL"
     restart: unless-stopped
 
 volumes:
