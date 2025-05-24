@@ -2,7 +2,7 @@ import { IURL } from "../models/url.model";
 import CRUDRepository from "../repository/CRUDRepository";
 import isValidUrl from "../utils/ValidateURL";
 import config from "../config/index";
-const { hashGenerator, range, getTokenRange } = config.ZooKeeperConfig;
+const { getNextToken } = config.ZooKeeperConfig;
 const { connectRedis } = config.RedisConfig;
 
 class URLService {
@@ -26,20 +26,12 @@ class URLService {
     let expiryDate =
       ExpiresAt || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
-    // if ExpiresAt is a Date object from the calendar, no need to parse
     if (
       !(expiryDate instanceof Date) ||
       isNaN(expiryDate.getTime()) ||
       expiryDate <= new Date()
     ) {
       expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-    }
-
-    if (range.curr < range.end - 1 && range.curr !== 0) {
-      range.curr++;
-    } else {
-      await getTokenRange();
-      range.curr++;
     }
 
     const redisClient = await connectRedis();
@@ -71,8 +63,18 @@ class URLService {
       return existingUrl.Hash;
     }
 
+    // Generate unique hash
+    let Hash: string;
+    let isUnique = false;
+
+    do {
+      Hash = await getNextToken(); // already returns hashed token
+      const exists = await this.findURL({ Hash });
+      if (!exists) isUnique = true;
+    } while (!isUnique);
+
     const newUrlData: any = {
-      Hash: hashGenerator(range.curr - 1),
+      Hash,
       OriginalUrl,
       Password: Password || null,
       OneTime: OneTime || false,

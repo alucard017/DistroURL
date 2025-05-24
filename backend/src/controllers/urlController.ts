@@ -23,6 +23,7 @@ class URLController {
   urlPost = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<any> => {
       try {
+        console.log(`urlPost Invoked`);
         const { OriginalUrl, Password, OneTime } = req.body;
         let { ExpiresAt } = req.body;
         if (ExpiresAt) {
@@ -65,6 +66,7 @@ class URLController {
   urlGet = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<any> => {
       try {
+        console.log(`urlGet Invoked`);
         const identifier = req.params.identifier || req.query.identifier;
         const url = await URLService.findURL({ Hash: identifier });
 
@@ -135,7 +137,7 @@ class URLController {
   </head>
   <body>
     <div class="form-container">
-      <form method="POST" action="/api/url/${identifier}">
+      <form method="POST" action="/url/${identifier}">
         <label>Enter password:</label>
         <input type="password" name="password" required />
         <button type="submit">Submit</button>
@@ -164,6 +166,7 @@ class URLController {
   urlPostPassword = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<any> => {
       try {
+        console.log(`urlPostPassword Invoked`);
         const identifier = req.params.identifier || req.query.identifier;
         const providedPassword = req.body.password;
         const url = await URLService.findURL({ Hash: identifier });
@@ -243,7 +246,7 @@ class URLController {
   <body>
     <div class="form-container">
       <p class="error-message">Invalid password, try again.</p>
-      <form method="POST" action="/api/url/${identifier}">
+      <form method="POST" action="/url/${identifier}">
         <label>Enter password:</label>
         <input type="password" name="password" required />
         <button type="submit">Submit</button>
@@ -297,6 +300,7 @@ class URLController {
   urlSearch = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<any> => {
       try {
+        console.log(`urlSearch Invoked`);
         const { OriginalUrl } = req.body;
 
         if (!OriginalUrl || typeof OriginalUrl !== "string") {
@@ -334,6 +338,7 @@ class URLController {
   urlBulkHandler = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<any> => {
       try {
+        console.log(`urlBulkHandler Invoked`);
         const file = req.file;
 
         if (!file) {

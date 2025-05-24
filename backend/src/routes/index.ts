@@ -7,7 +7,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /url:
+ * /url/p:
  *   post:
  *     summary: Shorten a URL
  *     tags: [URL]
@@ -51,109 +51,36 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/url", URLController.urlPost);
-
+router.post("/p", URLController.urlPost);
 /**
  * @swagger
- * /{identifier}:
- *   get:
- *     summary: Get the original URL from a shortened identifier
+ * /url/bulk:
+ *   post:
+ *     summary: Upload a CSV file to bulk shorten URLs
  *     tags: [URL]
- *     parameters:
- *       - in: path
- *         name: identifier
- *         schema:
- *           type: string
- *         required: true
- *         description: The short URL identifier
- *     responses:
- *       302:
- *         description: Redirects to the original URL
- *       404:
- *         description: URL not found
- *       410:
- *         description: URL has expired
- *       500:
- *         description: Internal server error
- *       200:
- *         description: Password prompt page HTML
- */
-router.get("/url/:identifier", URLController.urlGet);
-
-/**
- * @swagger
- * /api/url/del:
- *   delete:
- *     summary: Delete all URLs associated with a user's token
- *     tags: [URL]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
- *         description: All URLs deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 statusCode:
- *                   type: integer
- *                   example: 200
- *                 data:
- *                   type: object
- *                   properties:
- *                     message:
- *                       type: string
- *                       example: Token removed
- *                 message:
- *                   type: string
- *                   example: Success
+ *         description: Bulk shortened URLs CSV returned for download
+ *       400:
+ *         description: No CSV file uploaded or CSV parsing error
  *       500:
- *         description: Failed to remove token
+ *         description: Error processing bulk upload
  */
-router.delete("/url/del", URLController.tokenDelete);
+router.post("/bulk", upload.single("file"), URLController.urlBulkHandler);
 
 /**
  * @swagger
- * /api/url/{identifier}:
- *   delete:
- *     summary: Delete a specific short URL by identifier
- *     tags: [URL]
- *     parameters:
- *       - in: path
- *         name: identifier
- *         schema:
- *           type: string
- *         required: true
- *         description: The short URL identifier
- *     responses:
- *       200:
- *         description: URL deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 statusCode:
- *                   type: integer
- *                   example: 200
- *                 data:
- *                   type: object
- *                   properties:
- *                     message:
- *                       type: string
- *                       example: URL deleted
- *                 message:
- *                   type: string
- *                   example: Success
- *       404:
- *         description: URL not found
- *       500:
- *         description: Failed to delete URL
- */
-router.delete("/url/:identifier", URLController.urlDelete);
-
-/**
- * @swagger
- * /search:
+ * /url/search:
  *   post:
  *     summary: Search URLs by keyword or metadata
  *     tags: [URL]
@@ -209,7 +136,105 @@ router.delete("/url/:identifier", URLController.urlDelete);
  *       500:
  *         description: Failed to search URLs
  */
-router.post("/url/search", URLController.urlSearch);
+router.post("/search", URLController.urlSearch);
+
+/**
+ * @swagger
+ * /url/del:
+ *   delete:
+ *     summary: Delete all URLs associated with a user's token
+ *     tags: [URL]
+ *     responses:
+ *       200:
+ *         description: All URLs deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: Token removed
+ *                 message:
+ *                   type: string
+ *                   example: Success
+ *       500:
+ *         description: Failed to remove token
+ */
+router.delete("/del", URLController.tokenDelete);
+
+/**
+ * @swagger
+ * /url/del/{identifier}:
+ *   delete:
+ *     summary: Delete a specific short URL by identifier
+ *     tags: [URL]
+ *     parameters:
+ *       - in: path
+ *         name: identifier
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The short URL identifier
+ *     responses:
+ *       200:
+ *         description: URL deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: URL deleted
+ *                 message:
+ *                   type: string
+ *                   example: Success
+ *       404:
+ *         description: URL not found
+ *       500:
+ *         description: Failed to delete URL
+ */
+router.delete("/del/:identifier", URLController.urlDelete);
+
+/**
+ * @swagger
+ * /url/{identifier}:
+ *   get:
+ *     summary: Get the original URL from a shortened identifier
+ *     tags: [URL]
+ *     parameters:
+ *       - in: path
+ *         name: identifier
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The short URL identifier
+ *     responses:
+ *       302:
+ *         description: Redirects to the original URL
+ *       404:
+ *         description: URL not found
+ *       410:
+ *         description: URL has expired
+ *       500:
+ *         description: Internal server error
+ *       200:
+ *         description: Password prompt page HTML
+ */
+router.get("/:identifier", URLController.urlGet);
 
 /**
  * @swagger
@@ -243,32 +268,6 @@ router.post("/url/search", URLController.urlSearch);
  *       500:
  *         description: Failed to validate password
  */
-router.post("/url/:identifier", URLController.urlPostPassword);
-
-/**
- * @swagger
- * /url/bulk:
- *   post:
- *     summary: Upload a CSV file to bulk shorten URLs
- *     tags: [URL]
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *     responses:
- *       200:
- *         description: Bulk shortened URLs CSV returned for download
- *       400:
- *         description: No CSV file uploaded or CSV parsing error
- *       500:
- *         description: Error processing bulk upload
- */
-router.post("/url/bulk", upload.single("file"), URLController.urlBulkHandler);
+router.post("/:identifier", URLController.urlPostPassword);
 
 export default router;

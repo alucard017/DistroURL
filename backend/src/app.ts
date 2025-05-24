@@ -31,8 +31,8 @@ app.use(
 })();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use("/api", mainRoute);
+app.use("/durl-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/url", mainRoute);
 
 app.use(globalErrorHandler);
 export default app;

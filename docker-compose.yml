@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   redis:
     image: redis
@@ -21,13 +19,13 @@ services:
       - zookeeper-datalog:/datalog
     restart: unless-stopped
 
-  mongodb:
-    image: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb-data:/data/db
-    restart: unless-stopped
+  # mongodb:
+  #   image: mongo
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongodb-data:/data/db
+  #   restart: unless-stopped
 
   backend:
     build: ./backend
@@ -40,11 +38,14 @@ services:
     environment:
       - PORT=8080
       - REDIS_HOST=redis
+      # - REDIS_HOST=localhost
       - REDIS_PORT=6379
       - LOG_LEVEL=info
       - ZK_SERVER=zookeeper:2181
-      - MONGODB_URI=mongodb://mongodb:27017/DistroURL
-      - BASE_URL=distro-url.vercel.app
+      # - ZK_SERVER=localhost:2181
+      - MONGODB_URI=mongodb+srv://apurba007:Apurba%40123@learningcluster1.yhtlu.mongodb.net/DistroURL
+      - BASE_URL=distro-url.vercel.app/url
+      # - BASE_URL=localhost:8080/url
     restart: unless-stopped
 
 volumes:
