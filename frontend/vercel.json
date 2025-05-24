@@ -23,10 +23,6 @@
     {
       "source": "/url/:identifier",
       "destination": "http://135.13.37.72:8080/url/:identifier"
-    },
-    {
-      "source": "/durl-docs",
-      "destination": "http://135.13.37.72:8080/durl-docs"
     }
   ]
 }
