@@ -46,6 +46,15 @@ services:
       - MONGODB_URI="your mongodb URL"
       - BASE_URL="your base URL"
     restart: unless-stopped
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
 
 volumes:
   redis-data:

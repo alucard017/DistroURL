@@ -2,27 +2,31 @@
   "rewrites": [
     {
       "source": "/url/p",
-      "destination": "http://135.13.37.72:8080/url/p"
+      "destination": "http://135.13.37.72/url/p"
     },
     {
       "source": "/url/bulk",
-      "destination": "http://135.13.37.72:8080/url/bulk"
+      "destination": "http://135.13.37.72/url/bulk"
     },
     {
       "source": "/url/search",
-      "destination": "http://135.13.37.72:8080/url/search"
+      "destination": "http://135.13.37.72/url/search"
     },
     {
       "source": "/url/del",
-      "destination": "http://135.13.37.72:8080/url/del"
+      "destination": "http://135.13.37.72/url/del"
     },
     {
       "source": "/url/del/:identifier",
-      "destination": "http://135.13.37.72:8080/url/del/:identifier"
+      "destination": "http://135.13.37.72/url/del/:identifier"
     },
     {
       "source": "/url/:identifier",
-      "destination": "http://135.13.37.72:8080/url/:identifier"
+      "destination": "http://135.13.37.72/url/:identifier"
+    },
+    {
+      "source": "/durl-docs",
+      "destination": "http://135.13.37.72/durl-docs"
     }
   ]
 }
