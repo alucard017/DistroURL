@@ -2,14 +2,14 @@ import http from "k6/http";
 import { sleep } from "k6";
 
 export let options = {
-  vus: 50, // number of virtual users
-  duration: "1m", // duration of the test
+  vus: 150,
+  duration: "1m",
 };
 
 export default function () {
-  const url = "http://127.0.0.1:8080/url/p"; // replace with your POST URL
+  const url = "http://127.0.0.1:8080/url/p";
   const payload = JSON.stringify({
-    OriginalUrl: "https://www.github.com",
+    OriginalUrl: "https://www.google.com",
     Password: "1234",
     OneTime: "1",
     ExpiresAt: "22/02/2026",
