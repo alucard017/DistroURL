@@ -1,0 +1,6 @@
+[submodule "DistroURL-Frontend"]
+	path = DistroURL-Frontend
+	url = https://github.com/alucard017/DistroURL-Frontend.git
+[submodule "DistroURL-Backend"]
+	path = DistroURL-Backend
+	url = https://github.com/alucard017/DistroURL-Backend.git
