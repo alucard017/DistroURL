@@ -83,7 +83,7 @@ When a user accesses a short URL:
 
 ## 🛠️ Setup Instructions
 
-### Frontend is hosted at `https://www.distro-url.vercel.app`
+### Frontend is hosted at `https://distro-url.vercel.app`
 
 ### 1. Prerequisites
 
