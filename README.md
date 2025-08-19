@@ -21,7 +21,7 @@ DistroURL follows a distributed system architecture using:
 - **Express.js** as the backend HTTP server.
 - **Next.js** for the frontend (UI).
 - **Fast-CSV** for optional bulk input/output.
-
+![Diagram](architecture-bl.png)
 ### 🔗 Flow of Short URL Generation
 
 1. ZooKeeper assigns a unique token range to each backend instance.
@@ -161,3 +161,4 @@ backend_ip = <YOUR_VPS_PUBLIC_IP> OR <localhost> OR <ANY_PUBLIC_IP> : 8080
 destination: "<backend_ip>/<path>"
 
 ```
+
